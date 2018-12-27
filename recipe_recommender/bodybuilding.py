@@ -105,9 +105,29 @@ def save_df():
 
 def process_ingredients(data):
     """
-       Process the ingredients from bodybuilding.com and save the recipe
+    Process the ingredients from bodybuilding.com and save the recipe.
+    Each of the ingredients is in formats like shown below:
 
-       data is the scraped json.
+    white cheddar - 2 oz (ingredient - amount unit)
+    green onion, chopped - ¼ cup  (ingredient, descriptor - amount unit)
+    salt and pepper to taste (ingredient)
+
+    We will be splitting up the ingredient, amounts, units, and descriptors from these strings.
+    For the 3rd case above. The amount will be returned as 0 with units of None.
+
+    This creates the csvs `recipe_ingredients` which has recipe_id, ingredient_id, amount, unit, and descriptor and
+    `ingredients` which matches ingredients to ingredient_ids
+
+    # TODO: Some thins are still slipping through. Like this 'banana -  medium (7" to 7-7/8" long)'. Actually right now I think that's the only one it's failing on.
+
+    Parameters
+    ---------------------
+    data:
+        Scraped json from bodybuilding.com
+
+
+
+
 
     """
 
@@ -123,36 +143,61 @@ def process_ingredients(data):
         if 'recipeIngredient' in dat.keys():
             ingredients = dat['recipeIngredient']
             for ingredient in ingredients:
+                descriptor = None  # most recipes will have no descriptors, but we need a placeholder
+                amount = None
+                unit = None
                 descriptor = None
+
                 recipe_ids.append(recipe_id)
 
+                # replace characters that we can't convert to floats. There has to be a better way
                 ingredient = ingredient.replace(u"½", u".5")
                 ingredient = ingredient.replace(u"¼", u".25")
                 ingredient = ingredient.replace(u"¾", u".75")
                 ingredient = ingredient.replace(u"⅛", u".125")
+                ingredient = ingredient.replace(u"⅓", u".333")
+                ingredient = ingredient.replace(u"1⅓", u"1.333")
+                ingredient = ingredient.replace(u"⅔", u".66")
+                ingredient = ingredient.replace(u"⅜", u".375")
+                ingredient = ingredient.replace(u"⅝", u".625")
+                ingredient = ingredient.replace(u"⅞", u".875")
+                ingredient = ingredient.replace(u"1⅞", u".875")
+
+                # split ingredient name from amount/unit
                 split_ingredients = ingredient.split(' -')
+                # now we have something like this ['grilled chicken thighs', ' 5 lb']
+
                 this_ingredient = split_ingredients[0].strip()
 
-                split_again = split_ingredients[1].split(' ')
+                # This should split the amount and unit (eg ['5', 'lb'])
+                split_again = split_ingredients[1].strip().split(' ')
 
-                if len(split_again) > 2:
-                    amount = split_again[1]
-                    unit = split_again[2]
+                if len(split_again) == 2:
+                    amount = split_again[0]
+                    unit = split_again[1]
+
+                    # convert the amount to a float
                     try:
                         amount = float(amount)
-                    except ValueError:
+                    except ValueError:  # this happens with something like `granulated Stevia -  to taste`
                         amount = 0
                         unit = None
 
+                # This is what happens if there are no units (e.g. ingredient is 'avocado - 1' or 'salt and pepper to taste')
                 else:
-                    amount = 0
-                    unit = None
+                    try:
+                        amount = float(split_again[0])
+                        unit = None
+                    except ValueError:  # this means it's the second kind in example above
+                        amount = 0
+                        unit = None
 
+                # Separate out if the ingredient has something like 'spinach, chopped'
                 with_descriptors = this_ingredient.split(',')
-                if len(with_descriptors) > 1:
+                if len(with_descriptors) > 1:  # This means there is a description
 
                     this_ingredient = with_descriptors[0]
-                    # print(with_descriptors)
+
                     with_descriptors = with_descriptors[1:]
 
                     descriptor = ' '.join(with_descriptors).strip().lower()
@@ -160,13 +205,11 @@ def process_ingredients(data):
 
                 else:
                     descriptor = None
-                # print(this_ingredient, float(amount), unit)
 
                 all_ingredients.append(this_ingredient.lower())
                 all_amounts.append(amount)
                 all_units.append(unit)
                 all_descriptors.append(descriptor)
-                # print('')
 
     ingredient_set = sorted(list(set(all_ingredients)))
     ingredient_table = pd.DataFrame({'ingredient': ingredient_set}).reset_index()
@@ -188,7 +231,7 @@ def process_ingredients(data):
 
 
 if __name__ == '__main__':
-    with open(DATA_DIR + 'bodybuilding_recipes.json') as f:
+    with open(os.path.join(DATA_DIR, 'bodybuilding_recipes.json')) as f:
         scraped_data = json.load(f)
 
     process_ingredients(scraped_data)
