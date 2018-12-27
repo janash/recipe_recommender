@@ -9,8 +9,8 @@ import pandas as pd
 import requests
 import json
 
-DATA_DIR = '../data/'
-CLEANED_DATA_DIR = '../data/cleaned/'
+DATA_DIR = os.path.join('..', 'data')
+CLEANED_DATA_DIR = os.path.join(DATA_DIR, 'cleaned')
 
 if not os.path.exists(CLEANED_DATA_DIR):
     os.mkdir(CLEANED_DATA_DIR)
@@ -113,7 +113,6 @@ def process_ingredients(data):
 
     all_ingredients = []
     all_amounts = []
-    all_units = []
     all_descriptors = []
     all_units = []
     recipe_ids = []
@@ -182,7 +181,7 @@ def process_ingredients(data):
                                                             right_on='ingredient')
 
     recipe_ingredient_table.drop('ingredient', axis=1, inplace=True)
-    recipe_ingredient_table =recipe_ingredient_table.sort_values(by=['recipe_id'])
+    recipe_ingredient_table = recipe_ingredient_table.sort_values(by=['recipe_id'])
 
     recipe_ingredient_table.to_csv(CLEANED_DATA_DIR + 'recipe_ingredients.csv', index=False)
     ingredient_table.to_csv(CLEANED_DATA_DIR + 'ingredients.csv', index=False)
