@@ -134,9 +134,11 @@ def process_nutrition():
             for key in nutrition_dict.keys():
                 value = recipe['schemaOrg']['nutrition'][key]
                 split_value = value.split(' ')
-                if len(split_value)> 1:
-                    value = split_value[0]
-                nutrition_dict[key].append(value)
+                if len(split_value) == 2 and key != 'servingSize':
+                    nutrition_dict[key].append(split_value[0])
+                else:
+                    print(key, value)
+                    nutrition_dict[key].append(value)
 
     nutrition_dict['id'] = recipe_ids
 
