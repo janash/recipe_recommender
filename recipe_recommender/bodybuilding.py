@@ -137,10 +137,9 @@ def process_nutrition():
                 if len(split_value) == 2 and key != 'servingSize':
                     nutrition_dict[key].append(split_value[0])
                 else:
-                    print(key, value)
                     nutrition_dict[key].append(value)
 
-    nutrition_dict['id'] = recipe_ids
+    nutrition_dict['recipe_id'] = recipe_ids
 
     # Modify so that units are in nutrition dict keys
     for key, value in unit_dict.items():
