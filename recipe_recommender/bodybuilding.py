@@ -9,11 +9,18 @@ import pandas as pd
 import requests
 import json
 
+
+# Define file names
+_base_path = os.path.join('..', 'data')
+_open_path = os.path.join(_base_path, 'bodybuilding_recipes.json')
+_save_path = os.path.join(_base_path, 'bodybuilding_recipes.pkl')
+
 DATA_DIR = os.path.join('..', 'data')
 CLEANED_DATA_DIR = os.path.join(DATA_DIR, 'cleaned')
 
 if not os.path.exists(CLEANED_DATA_DIR):
     os.mkdir(CLEANED_DATA_DIR)
+
 
 
 def scrape_db():
@@ -56,17 +63,16 @@ def save_df():
     Create pandas dataframe from json and save as csv
     """
 
-    # Define file name
-    base_path = os.path.join('..', 'data')
-    open_path = os.path.join(base_path, 'bodybuilding_recipes.json')
-    save_path = os.path.join(base_path, 'bodybuilding_recipes.csv')
+    # Check that data directory exists, if not, create it
+    if not os.path.isdir(_base_path):
+        os.mkdir(_base_path)
 
     # Check that file exists - if not use scrape_db function
-    if not os.path.isfile(open_path):
+    if not os.path.isfile(_open_path):
         scrape_db()
 
     # Load from json
-    with open(open_path) as f:
+    with open(_open_path) as f:
         data = json.load(f)
 
     # Now we need to "flatten" this data. Nutrituin information is nested.
@@ -78,6 +84,7 @@ def save_df():
 
     # Determine structure from first recipe
     for key in keys_of_interest:
+        print(key)
         if isinstance(recipe_0['schemaOrg'][key], dict):
             for deep_key in recipe_0['schemaOrg'][key].keys():
                 if '@' not in deep_key:
@@ -98,10 +105,62 @@ def save_df():
 
     # Create dataframe
     df = pd.DataFrame.from_dict(data_holder)
+    # Save as pickle
+    df.to_pickle(_save_path)
 
-    # Save as csv
-    df.to_csv(save_path)
+def process_nutrition():
+    """
+    Takes nutrition information from json and saves as csv (for later procesing)
 
+    Parameters:
+    --------------------
+    data: dict
+        json from bodybuilding.com
+    """
+
+    with open(_open_path) as f:
+        data = json.load(f)
+
+    nutrition_dict = {}
+    unit_dict = {}
+    recipe_ids = []
+
+    # Build empty dict and get units
+    for key in data[0]['schemaOrg']['nutrition'].keys():
+        if '@' not in key:
+            split_cell = data[0]['schemaOrg']['nutrition'][key].split(' ')
+            unit = None
+            if len(split_cell)>1:
+                unit = split_cell[1]
+            nutrition_dict[key] = []
+            unit_dict[key] = unit
+
+    # Loop through recipes
+    for recipe in data:
+        # Only store if recipe has nutritin info
+        if 'nutrition' in recipe['schemaOrg'].keys():
+            recipe_ids.append(recipe['id'])
+            for key in nutrition_dict.keys():
+                value = recipe['schemaOrg']['nutrition'][key]
+                split_value = value.split(' ')
+                if len(split_value) == 2 and key != 'servingSize':
+                    nutrition_dict[key].append(split_value[0])
+                else:
+                    nutrition_dict[key].append(value)
+
+    nutrition_dict['recipe_id'] = recipe_ids
+
+    # Modify so that units are in nutrition dict keys
+    for key, value in unit_dict.items():
+        if value:
+            new_key = key + ' (' + value + ')'
+            nutrition_dict[new_key] = nutrition_dict.pop(key)
+
+    # Create dataframe
+    df = pd.DataFrame.from_dict(nutrition_dict)
+
+    save_path = os.path.join(_base_path, 'bodybuilding_nutrition.csv')
+    df.to_csv(save_path, index=False)
 
 def process_ingredients(data):
     """
