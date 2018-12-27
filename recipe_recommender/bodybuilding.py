@@ -51,8 +51,6 @@ def scrape_db():
     rf.close()
 
 
-
-
 def save_df():
     """
     Create pandas dataframe from json and save as csv
@@ -103,8 +101,6 @@ def save_df():
 
     # Save as csv
     df.to_csv(save_path)
-
-
 
 
 def process_ingredients(data):
@@ -172,25 +168,27 @@ def process_ingredients(data):
                 all_units.append(unit)
                 all_descriptors.append(descriptor)
                 # print('')
-    print(len(all_ingredients))
 
     ingredient_set = sorted(list(set(all_ingredients)))
-    ingredient_table = pd.DataFrame({'ingredient':ingredient_set}).reset_index()
+    ingredient_table = pd.DataFrame({'ingredient': ingredient_set}).reset_index()
 
     recipe_ingredient_table = pd.DataFrame(
-        {'recipe_id': recipe_ids, 'ingredient': all_ingredients, 'amount': all_amounts, 'unit':all_units,
+        {'recipe_id': recipe_ids, 'ingredient': all_ingredients, 'amount': all_amounts, 'unit': all_units,
          'descriptor': all_descriptors})
 
     ingredient_table['index'] += 1
     ingredient_table = ingredient_table.rename(columns={'index': 'ingredient_id'})
-    recipe_ingredient_table = recipe_ingredient_table.merge(ingredient_table, left_on='ingredient', right_on='ingredient')
+    recipe_ingredient_table = recipe_ingredient_table.merge(ingredient_table, left_on='ingredient',
+                                                            right_on='ingredient')
+
+    recipe_ingredient_table.drop('ingredient', axis=1, inplace=True)
+    recipe_ingredient_table =recipe_ingredient_table.sort_values(by=['recipe_id'])
 
     recipe_ingredient_table.to_csv(CLEANED_DATA_DIR + 'recipe_ingredients.csv', index=False)
     ingredient_table.to_csv(CLEANED_DATA_DIR + 'ingredients.csv', index=False)
 
 
 if __name__ == '__main__':
-
     with open(DATA_DIR + 'bodybuilding_recipes.json') as f:
         scraped_data = json.load(f)
 
