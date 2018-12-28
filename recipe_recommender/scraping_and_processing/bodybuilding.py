@@ -201,7 +201,6 @@ def process_ingredients(data):
                 descriptor = None  # most recipes will have no descriptors, but we need a placeholder
                 amount = None
                 unit = None
-                descriptor = None
 
                 recipe_ids.append(recipe_id)
 
@@ -281,7 +280,11 @@ def process_ingredients(data):
     recipe_ingredient_table.drop('ingredient', axis=1, inplace=True)
     recipe_ingredient_table = recipe_ingredient_table.sort_values(by=['recipe_id'])
 
-    recipe_ingredient_table.to_csv(os.path.join(_CLEANED_DATA_DIR , 'recipe_ingredients.csv'), index=False)
+    recipe_ingredient_table= recipe_ingredient_table.reset_index()
+    recipe_ingredient_table['index'] += 1
+    recipe_ingredient_table = recipe_ingredient_table.rename(columns={'index': 'id'})
+
+    recipe_ingredient_table.to_csv(os.path.join(_CLEANED_DATA_DIR , 'recipe_ingredients.csv'), index = False)
     ingredient_table.to_csv(os.path.join(_CLEANED_DATA_DIR , 'ingredients.csv'), index=False)
 
 
