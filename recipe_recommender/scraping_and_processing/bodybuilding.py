@@ -9,18 +9,17 @@ import pandas as pd
 import requests
 import json
 
-
 # Define file names
-_base_path = os.path.join('..', 'data')
-_open_path = os.path.join(_base_path, 'bodybuilding_recipes.json')
-_save_path = os.path.join(_base_path, 'bodybuilding_recipes.pkl')
+# _base_path = os.path.join('..', 'data')
 
-DATA_DIR = os.path.join('..', 'data')
-CLEANED_DATA_DIR = os.path.join(DATA_DIR, 'cleaned')
+_DATA_DIR = os.path.join('..', 'data')
+_CLEANED_DATA_DIR = os.path.join(_DATA_DIR, 'cleaned')
 
-if not os.path.exists(CLEANED_DATA_DIR):
-    os.mkdir(CLEANED_DATA_DIR)
+_open_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.json')
+_save_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.pkl')
 
+if not os.path.exists(_CLEANED_DATA_DIR):
+    os.mkdir(_CLEANED_DATA_DIR)
 
 
 def scrape_db():
@@ -64,8 +63,8 @@ def save_df():
     """
 
     # Check that data directory exists, if not, create it
-    if not os.path.isdir(_base_path):
-        os.mkdir(_base_path)
+    if not os.path.isdir(_DATA_DIR):
+        os.mkdir(_DATA_DIR)
 
     # Check that file exists - if not use scrape_db function
     if not os.path.isfile(_open_path):
@@ -108,6 +107,7 @@ def save_df():
     # Save as pickle
     df.to_pickle(_save_path)
 
+
 def process_nutrition():
     """
     Takes nutrition information from json and saves as csv (for later procesing)
@@ -130,7 +130,7 @@ def process_nutrition():
         if '@' not in key:
             split_cell = data[0]['schemaOrg']['nutrition'][key].split(' ')
             unit = None
-            if len(split_cell)>1:
+            if len(split_cell) > 1:
                 unit = split_cell[1]
             nutrition_dict[key] = []
             unit_dict[key] = unit
@@ -159,8 +159,9 @@ def process_nutrition():
     # Create dataframe
     df = pd.DataFrame.from_dict(nutrition_dict)
 
-    save_path = os.path.join(_base_path, 'bodybuilding_nutrition.csv')
+    save_path = os.path.join(_CLEANED_DATA_DIR, 'bodybuilding_nutrition.csv')
     df.to_csv(save_path, index=False)
+
 
 def process_ingredients(data):
     """
@@ -183,11 +184,6 @@ def process_ingredients(data):
     ---------------------
     data:
         Scraped json from bodybuilding.com
-
-
-
-
-
     """
 
     all_ingredients = []
@@ -285,12 +281,13 @@ def process_ingredients(data):
     recipe_ingredient_table.drop('ingredient', axis=1, inplace=True)
     recipe_ingredient_table = recipe_ingredient_table.sort_values(by=['recipe_id'])
 
-    recipe_ingredient_table.to_csv(CLEANED_DATA_DIR + 'recipe_ingredients.csv', index=False)
-    ingredient_table.to_csv(CLEANED_DATA_DIR + 'ingredients.csv', index=False)
+    recipe_ingredient_table.to_csv(os.path.join(_CLEANED_DATA_DIR , 'recipe_ingredients.csv'), index=False)
+    ingredient_table.to_csv(os.path.join(_CLEANED_DATA_DIR , 'ingredients.csv'), index=False)
 
 
 if __name__ == '__main__':
-    with open(os.path.join(DATA_DIR, 'bodybuilding_recipes.json')) as f:
+    with open(os.path.join(_DATA_DIR, 'bodybuilding_recipes.json')) as f:
         scraped_data = json.load(f)
 
     process_ingredients(scraped_data)
+    process_nutrition()
