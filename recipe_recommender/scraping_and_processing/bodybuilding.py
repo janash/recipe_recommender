@@ -12,7 +12,7 @@ import json
 # Define file names
 # _base_path = os.path.join('..', 'data')
 
-_DATA_DIR = os.path.join('..', 'data')
+_DATA_DIR = os.path.join('..', '..', 'data')
 _CLEANED_DATA_DIR = os.path.join(_DATA_DIR, 'cleaned')
 
 _open_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.json')
@@ -108,7 +108,7 @@ def save_df():
     df.to_pickle(_save_path)
 
 
-def process_nutrition():
+def process_nutrition(data):
     """
     Takes nutrition information from json and saves as csv (for later procesing)
 
@@ -117,9 +117,6 @@ def process_nutrition():
     data: dict
         json from bodybuilding.com
     """
-
-    with open(_open_path) as f:
-        data = json.load(f)
 
     nutrition_dict = {}
     unit_dict = {}
@@ -161,7 +158,6 @@ def process_nutrition():
 
     save_path = os.path.join(_CLEANED_DATA_DIR, 'bodybuilding_nutrition.csv')
     df.to_csv(save_path, index=False)
-
 
 def process_ingredients(data):
     """
@@ -293,4 +289,4 @@ if __name__ == '__main__':
         scraped_data = json.load(f)
 
     process_ingredients(scraped_data)
-    process_nutrition()
+    process_nutrition(scraped_data)
