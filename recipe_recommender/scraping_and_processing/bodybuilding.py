@@ -156,7 +156,36 @@ def process_nutrition(data):
     # Create dataframe
     df = pd.DataFrame.from_dict(nutrition_dict)
 
-    save_path = os.path.join(_CLEANED_DATA_DIR, 'bodybuilding_nutrition.csv')
+    save_path = os.path.join(_CLEANED_DATA_DIR, 'recipe_nutrition.csv')
+    df.to_csv(save_path, index=False)
+
+def process_instructions(data):
+    """
+    Takes recipe instructions from json and saves as csv.
+
+    Recipe instructions include information on prep time, cook time (in minutes),
+    and instructions (saved as string).
+
+    Note: saving as a csv converts the instructions (stored as list) to string.
+    Need to figure out something for this.
+    """
+
+    instruction_dict = {
+        'prepTime': [],
+        'cookTime': [],
+        'totalTime': [],
+        'directions': [],
+    }
+
+    for recipe in data:
+        for key in instruction_dict.keys():
+            instruction_dict[key].append(recipe[key])
+
+    save_path = os.path.join(_CLEANED_DATA_DIR, 'recipe_directions.csv')
+
+    # Create dataframe
+    df = pd.DataFrame.from_dict(instruction_dict)
+
     df.to_csv(save_path, index=False)
 
 def process_ingredients(data):
@@ -287,3 +316,4 @@ if __name__ == '__main__':
 
     process_ingredients(scraped_data)
     process_nutrition(scraped_data)
+    process_instructions(scraped_data)
