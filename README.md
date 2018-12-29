@@ -2,6 +2,8 @@
 
 This is a personal project meant to help with healthy meal planning. We will be recommending recipes for meal prep based on macronutrients, and similarity to other recipes (maybe unhealthy ones).
 
+This project uses python 3 and a PostgreSQL database.
+
 
 ## Data
 The data we are using is scraped from bodybuiling.com recipes. We have the following information:
@@ -38,3 +40,12 @@ We will likely be using a PostgreSQL database to store the data with the followi
   - `prep_time`
   - `cook_time`
   - `instructions`
+
+## Set-up
+We store the data in a PostgresSQL database. You can install postgres on macOS using homebrew [instructions here].(https://launchschool.com/blog/how-to-install-postgresql-on-a-mac)
+
+Once you have postgres installed, create the database by typing `createdb recipes`.
+
+A nifty tool to view your database is [TablePlus](https://tableplus.io/). There's a free version that you can use to connect to up to two databases at a time.
+
+Run the scripts in `recipes` to load the data into the database.
