@@ -42,7 +42,7 @@ We will likely be using a PostgreSQL database to store the data with the followi
   - `instructions`
 
 ## Set-up
-We store the data in a PostgresSQL database. You can install postgres on macOS using homebrew [instructions here](https://launchschool.com/blog/how-to-install-postgresql-on-a-mac)
+We store the data in a PostgresSQL database. You can install postgres on macOS using homebrew [(instructions here).](https://launchschool.com/blog/how-to-install-postgresql-on-a-mac)
 
 Once you have postgres installed, create the database by typing `createdb recipes`.
 
