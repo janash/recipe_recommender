@@ -13,8 +13,6 @@ __all__ = ["scrape_db", "save_df", "process_nutrition", "process_instructions",
             "process_ingredients"]
 
 # Define file names
-# _base_path = os.path.join('..', 'data')
-
 _current_dir = os.path.dirname(os.path.abspath(__file__))
 
 _DATA_DIR = os.path.join(_current_dir, '..', '..', 'data')
@@ -23,17 +21,18 @@ _CLEANED_DATA_DIR = os.path.join(_DATA_DIR, 'cleaned')
 _open_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.json')
 _save_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.pkl')
 
+# This will currently happen when the package is imported. Is that what we want?
 if not os.path.exists(_CLEANED_DATA_DIR):
     os.mkdir(_CLEANED_DATA_DIR)
 
 
-def scrape_db(test=True, write_file=True):
+def scrape_db(test=False, write_file=True):
     """
     Function to scrape bodybuild.com recipe database and save results as json.
 
     Parameters:
     ---------------------
-    
+
     """
 
     # Hacky way to get all recipes - you have to request the number. Luckily,
@@ -50,8 +49,8 @@ def scrape_db(test=True, write_file=True):
     # Get the total number of recipes in the db
     total_recipes = fake['total']
 
-    if test == False:
-        all_recipes = fake
+    if test == True:
+        all_recipes = fake_recipes
 
     else:
         # Change the 'limit' on the url to the total number of recipes
@@ -60,18 +59,17 @@ def scrape_db(test=True, write_file=True):
         all_recipes_list = requests.get(url_request, params=url_parameters)
         all_recipes = bs4.BeautifulSoup(all_recipes_list.content, features='html.parser')
 
-        # Just get search results and get rid of data before.
-        all_recipes_list = json.loads(str(all_recipes))['_embedded']['bb-cms:search-results']
+    # Just get search results and get rid of data before.
+    all_recipes_list = json.loads(str(all_recipes))['_embedded']['bb-cms:search-results']
 
-        # Dump to json file - results will always be saved in 'data' folder
-        save_path = os.path.join(DATA_DIR, 'bodybuilding_recipes.json')
+    # Dump to json file - results will always be saved in 'data' folder
+    if write_file == True:
+        save_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.json')
         rf = open(save_path, 'w')
         json.dump(all_recipes_list, rf)
         rf.close()
 
-
-
-
+    return all_recipes_list
 
 
 def save_df():
