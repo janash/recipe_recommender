@@ -1,12 +1,11 @@
+import os
 import datetime
-from sqlalchemy import Column, BigInteger, Integer, String, DateTime, Date, ForeignKey, ARRAY, Float, Boolean, Interval
-from sqlalchemy.orm import relationship
-from sqlalchemy import create_engine
+from sqlalchemy import Column, BigInteger, Integer, String, DateTime, Date, ForeignKey, ARRAY, Float, Boolean, Interval, create_engine
+from sqlalchemy.orm import relationship, Session
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session
 import pandas as pd
 
-from .utils import DB_URI
+from recipe_recommender.etl.utils import DB_URI
 
 Base = declarative_base()
 
@@ -43,9 +42,12 @@ if __name__ == '__main__':
     engine = create_engine(DB_URI)
     session = Session(bind=engine)
 
-    recipes = pd.read_csv('../../data/cleaned/recipes.csv')
-    ingredients = pd.read_csv('../../data/cleaned/ingredients.csv')
-    recipe_ingredients = pd.read_csv('../../data/cleaned/recipe_ingredients.csv')
+    _current_dir = os.path.dirname(os.path.abspath(__file__))
+    _data_dir = os.path.join(_current_dir, "..", "..", "data", "cleaned")
+
+    recipes = pd.read_csv(os.path.join(_data_dir, 'recipes.csv'))
+    ingredients = pd.read_csv(os.path.join(_data_dir, 'ingredients.csv'))
+    recipe_ingredients = pd.read_csv(os.path.join(_data_dir, 'recipe_ingredients.csv'))
 
     # Blow our DB up
     Base.metadata.drop_all(engine)

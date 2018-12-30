@@ -98,7 +98,6 @@ def save_df():
 
     # Determine structure from first recipe
     for key in keys_of_interest:
-        print(key)
         if isinstance(recipe_0['schemaOrg'][key], dict):
             for deep_key in recipe_0['schemaOrg'][key].keys():
                 if '@' not in deep_key:
