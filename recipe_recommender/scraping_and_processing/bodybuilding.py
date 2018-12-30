@@ -12,12 +12,13 @@ import json
 # Define file names
 # _base_path = os.path.join('..', 'data')
 
-_DATA_DIR = os.path.join('..', '..', 'data')
+_DATA_DIR = os.path.join('..','..', 'data')
 _CLEANED_DATA_DIR = os.path.join(_DATA_DIR, 'cleaned')
 
 _open_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.json')
 _save_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.pkl')
-
+print(os.getcwd())
+print(_CLEANED_DATA_DIR)
 if not os.path.exists(_CLEANED_DATA_DIR):
     os.mkdir(_CLEANED_DATA_DIR)
 
@@ -171,6 +172,7 @@ def process_instructions(data):
     """
 
     instruction_dict = {
+        'id':[],
         'prepTime': [],
         'cookTime': [],
         'totalTime': [],
@@ -182,10 +184,32 @@ def process_instructions(data):
             instruction_dict[key].append(recipe[key])
 
     save_path = os.path.join(_CLEANED_DATA_DIR, 'recipe_directions.csv')
+    instruction_dict['recipe_id'] = instruction_dict.pop('id')
+    # Create dataframe
+    df = pd.DataFrame.from_dict(instruction_dict)
+    df.to_csv(save_path, index=False)
+
+def process_recipe_table(data):
+    """
+        Takes recipe ids, names, and descriptions from json and saves to table
+        """
+
+    instruction_dict = {
+        'id': [],
+        'description': [],
+        'name': []
+    }
+
+    for recipe in data:
+        for key in instruction_dict.keys():
+            instruction_dict[key].append(recipe[key])
+
+    save_path = os.path.join(_CLEANED_DATA_DIR, 'recipes.csv')
+    instruction_dict['recipe_id'] = instruction_dict.pop('id')
+    instruction_dict['recipe_name'] = instruction_dict.pop('name')
 
     # Create dataframe
     df = pd.DataFrame.from_dict(instruction_dict)
-
     df.to_csv(save_path, index=False)
 
 def process_ingredients(data):
@@ -320,3 +344,4 @@ if __name__ == '__main__':
     process_ingredients(scraped_data)
     process_nutrition(scraped_data)
     process_instructions(scraped_data)
+    process_recipe_table(scraped_data)
