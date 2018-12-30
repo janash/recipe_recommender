@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 import pandas as pd
 
-from utils import DB_URI
+from .utils import DB_URI
 
 Base = declarative_base()
 #

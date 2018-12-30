@@ -9,10 +9,15 @@ import pandas as pd
 import requests
 import json
 
+__all__ = ["scrape_db", "save_df", "process_nutrition", "process_instructions",
+            "process_ingredients"]
+
 # Define file names
 # _base_path = os.path.join('..', 'data')
 
-_DATA_DIR = os.path.join('..', '..', 'data')
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+
+_DATA_DIR = os.path.join(_current_dir, '..', '..', 'data')
 _CLEANED_DATA_DIR = os.path.join(_DATA_DIR, 'cleaned')
 
 _open_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.json')
@@ -22,9 +27,13 @@ if not os.path.exists(_CLEANED_DATA_DIR):
     os.mkdir(_CLEANED_DATA_DIR)
 
 
-def scrape_db():
+def scrape_db(test=True, write_file=True):
     """
     Function to scrape bodybuild.com recipe database and save results as json.
+
+    Parameters:
+    ---------------------
+    
     """
 
     # Hacky way to get all recipes - you have to request the number. Luckily,
@@ -41,20 +50,28 @@ def scrape_db():
     # Get the total number of recipes in the db
     total_recipes = fake['total']
 
-    # Change the 'limit' on the url to the total number of recipes
-    url_parameters = {'sort': 'publishDate', 'order': 'desc', 'limit': str(total_recipes)}
+    if test == False:
+        all_recipes = fake
 
-    all_recipes_list = requests.get(url_request, params=url_parameters)
-    all_recipes = bs4.BeautifulSoup(all_recipes_list.content, features='html.parser')
+    else:
+        # Change the 'limit' on the url to the total number of recipes
+        url_parameters = {'sort': 'publishDate', 'order': 'desc', 'limit': str(total_recipes)}
 
-    # Just get search results and get rid of data before.
-    all_recipes_list = json.loads(str(all_recipes))['_embedded']['bb-cms:search-results']
+        all_recipes_list = requests.get(url_request, params=url_parameters)
+        all_recipes = bs4.BeautifulSoup(all_recipes_list.content, features='html.parser')
 
-    # Dump to json file - results will always be saved in 'data' folder
-    save_path = os.path.join(DATA_DIR, 'bodybuilding_recipes.json')
-    rf = open(save_path, 'w')
-    json.dump(all_recipes_list, rf)
-    rf.close()
+        # Just get search results and get rid of data before.
+        all_recipes_list = json.loads(str(all_recipes))['_embedded']['bb-cms:search-results']
+
+        # Dump to json file - results will always be saved in 'data' folder
+        save_path = os.path.join(DATA_DIR, 'bodybuilding_recipes.json')
+        rf = open(save_path, 'w')
+        json.dump(all_recipes_list, rf)
+        rf.close()
+
+
+
+
 
 
 def save_df():
