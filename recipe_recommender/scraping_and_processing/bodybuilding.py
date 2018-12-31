@@ -162,10 +162,13 @@ def process_nutrition(data):
     nutrition_dict['recipe_id'] = recipe_ids
 
     # Modify so that units are in nutrition dict keys
+    # We actually don't need this :(
+    """
     for key, value in unit_dict.items():
         if value:
             new_key = key + ' (' + value + ')'
             nutrition_dict[new_key] = nutrition_dict.pop(key)
+    """
 
     # Create dataframe
     df = pd.DataFrame.from_dict(nutrition_dict)
