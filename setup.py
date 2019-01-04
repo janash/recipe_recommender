@@ -13,6 +13,7 @@ if __name__ == "__main__":
             'pandas>=0.18',
             'requests',
             'sqlalchemy',
+            'psycopg2-binary',
         ],
         extras_require={
             'docs': [
