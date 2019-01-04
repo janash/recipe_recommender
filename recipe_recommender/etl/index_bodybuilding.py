@@ -37,6 +37,23 @@ class RecipeIngredients(Base):
     unit = Column(String)
     descriptor = Column(String)
 
+class RecipeNutrition(Base):
+    __tablename__ = 'recipe_nutrition'
+
+    recipe_id = Column(String, primary_key=True)
+    servingSize = Column(String)
+    calories = Column(Float)
+    carbohydrates = Column(Float)
+    protein = Column(Float)
+    fat = Column(Float)
+
+class RecipeDirections(Base):
+    __tablename__ = 'recipe_directions'
+
+    recipe_id = Column(String, primary_key=True)
+    cookTime = Column(Float)
+    totalTime = Column(Float)
+    directions = Column(String)
 
 if __name__ == '__main__':
     engine = create_engine(DB_URI)
@@ -48,6 +65,8 @@ if __name__ == '__main__':
     recipes = pd.read_csv(os.path.join(_data_dir, 'recipes.csv'))
     ingredients = pd.read_csv(os.path.join(_data_dir, 'ingredients.csv'))
     recipe_ingredients = pd.read_csv(os.path.join(_data_dir, 'recipe_ingredients.csv'))
+    recipe_nutrition = pd.read_csv(os.path.join(_data_dir, 'recipe_nutrition.csv'))
+    recipe_directions = pd.read_csv(os.path.join(_data_dir, 'recipe_directions.csv'))
 
     # Blow our DB up
     Base.metadata.drop_all(engine)
@@ -59,10 +78,15 @@ if __name__ == '__main__':
     recipes = recipes.to_dict('records')
     ingredients = ingredients.to_dict('records')
     recipe_ingredients = recipe_ingredients.to_dict('records')
+    recipe_nutrition = recipe_nutrition.to_dict('records')
+    recipe_directions = recipe_directions.to_dict('records')
 
     session.bulk_insert_mappings(Recipes, recipes)
     session.bulk_insert_mappings(Ingredients, ingredients)
     session.bulk_insert_mappings(RecipeIngredients, recipe_ingredients)
+    session.bulk_insert_mappings(RecipeNutrition, recipe_nutrition)
+    session.bulk_insert_mappings(RecipeDirections, recipe_directions)
+
 
     session.commit()
     session.close()
