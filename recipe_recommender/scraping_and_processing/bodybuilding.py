@@ -9,21 +9,23 @@ import pandas as pd
 import requests
 import json
 
+from pathlib import Path
+
 __all__ = ["scrape_db", "save_df", "process_nutrition", "process_instructions",
             "process_ingredients"]
 
 # Define file names
-_current_dir = os.path.dirname(os.path.abspath(__file__))
+_current_dir = Path(__file__).parent
 
-_DATA_DIR = os.path.join(_current_dir, '..', '..', 'data')
-_CLEANED_DATA_DIR = os.path.join(_DATA_DIR, 'cleaned')
+_DATA_DIR = _current_dir.joinpath(_current_dir, '..', '..', 'data')
+_CLEANED_DATA_DIR = _DATA_DIR.joinpath('cleaned')
 
-_open_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.json')
-_save_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.pkl')
+_open_path = Path.joinpath(_DATA_DIR, 'bodybuilding_recipes.json')
+_save_path = Path.joinpath(_DATA_DIR, 'bodybuilding_recipes.pkl')
 
 # This will currently happen when the package is imported. Is that what we want?
-if not os.path.exists(_CLEANED_DATA_DIR):
-    os.mkdir(_CLEANED_DATA_DIR)
+if not Path.exists(_CLEANED_DATA_DIR):
+    Path.mkdir(_CLEANED_DATA_DIR)
 
 
 def scrape_db(test=False, write_file=True):
@@ -64,7 +66,7 @@ def scrape_db(test=False, write_file=True):
 
     # Dump to json file - results will always be saved in 'data' folder
     if write_file == True:
-        save_path = os.path.join(_DATA_DIR, 'bodybuilding_recipes.json')
+        save_path = _DATA_DIR.joinpath('bodybuilding_recipes.json')
         rf = open(save_path, 'w')
         json.dump(all_recipes_list, rf)
         rf.close()
@@ -78,11 +80,11 @@ def save_df():
     """
 
     # Check that data directory exists, if not, create it
-    if not os.path.isdir(_DATA_DIR):
-        os.mkdir(_DATA_DIR)
+    if not Path.isdir(_DATA_DIR):
+        Path.mkdir(_DATA_DIR)
 
     # Check that file exists - if not use scrape_db function
-    if not os.path.isfile(_open_path):
+    if not Path.exists(_open_path):
         scrape_db()
 
     # Load from json
@@ -173,7 +175,7 @@ def process_nutrition(data):
     # Create dataframe
     df = pd.DataFrame.from_dict(nutrition_dict)
 
-    save_path = os.path.join(_CLEANED_DATA_DIR, 'recipe_nutrition.csv')
+    save_path = _CLEANED_DATA_DIR.joinpath('recipe_nutrition.csv')
     df.to_csv(save_path, index=False)
 
 def process_instructions(data):
@@ -199,7 +201,7 @@ def process_instructions(data):
         for key in instruction_dict.keys():
             instruction_dict[key].append(recipe[key])
 
-    save_path = os.path.join(_CLEANED_DATA_DIR, 'recipe_directions.csv')
+    save_path = _CLEANED_DATA_DIR.joinpath('recipe_directions.csv')
     instruction_dict['recipe_id'] = instruction_dict.pop('id')
     # Create dataframe
     df = pd.DataFrame.from_dict(instruction_dict)
@@ -220,7 +222,7 @@ def process_recipe_table(data):
         for key in instruction_dict.keys():
             instruction_dict[key].append(recipe[key])
 
-    save_path = os.path.join(_CLEANED_DATA_DIR, 'recipes.csv')
+    save_path = _CLEANED_DATA_DIR.joinpath('recipes.csv')
     instruction_dict['recipe_id'] = instruction_dict.pop('id')
     instruction_dict['recipe_name'] = instruction_dict.pop('name')
 
@@ -349,12 +351,12 @@ def process_ingredients(data):
     recipe_ingredient_table['index'] += 1
     recipe_ingredient_table = recipe_ingredient_table.rename(columns={'index': 'id'})
 
-    recipe_ingredient_table.to_csv(os.path.join(_CLEANED_DATA_DIR , 'recipe_ingredients.csv'), index = False)
-    ingredient_table.to_csv(os.path.join(_CLEANED_DATA_DIR , 'ingredients.csv'), index=False)
+    recipe_ingredient_table.to_csv(_CLEANED_DATA_DIR.joinpath('recipe_ingredients.csv'), index = False)
+    ingredient_table.to_csv(_CLEANED_DATA_DIR.joinpath('ingredients.csv'), index=False)
 
 
 if __name__ == '__main__':
-    with open(os.path.join(_DATA_DIR, 'bodybuilding_recipes.json')) as f:
+    with _DATA_DIR.pathjoin('bodybuilding_recipes.json').open as f:
         scraped_data = json.load(f)
 
     process_ingredients(scraped_data)
