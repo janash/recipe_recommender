@@ -23,17 +23,12 @@ _CLEANED_DATA_DIR = _DATA_DIR.joinpath('cleaned')
 _open_path = Path.joinpath(_DATA_DIR, 'bodybuilding_recipes.json')
 _save_path = Path.joinpath(_DATA_DIR, 'bodybuilding_recipes.pkl')
 
-# This will currently happen when the package is imported. Is that what we want?
-if not Path.exists(_CLEANED_DATA_DIR):
-    Path.mkdir(_CLEANED_DATA_DIR)
-
-
 def scrape_db(test=False, write_file=True):
     """
     Function to scrape bodybuild.com recipe database and save results as json.
 
     Parameters:
-    ---------------------
+    -----------
 
     """
 
@@ -80,7 +75,7 @@ def save_df():
     """
 
     # Check that data directory exists, if not, create it
-    if not Path.isdir(_DATA_DIR):
+    if not Path.is_dir(_DATA_DIR):
         Path.mkdir(_DATA_DIR)
 
     # Check that file exists - if not use scrape_db function
@@ -129,7 +124,7 @@ def process_nutrition(data):
     Takes nutrition information from json and saves as csv (for later procesing)
 
     Parameters:
-    --------------------
+    -----------
     data: dict
         json from bodybuilding.com
     """
@@ -209,8 +204,8 @@ def process_instructions(data):
 
 def process_recipe_table(data):
     """
-        Takes recipe ids, names, and descriptions from json and saves to table
-        """
+    Takes recipe ids, names, and descriptions from json and saves to table
+    """
 
     instruction_dict = {
         'id': [],
@@ -356,7 +351,16 @@ def process_ingredients(data):
 
 
 if __name__ == '__main__':
-    with _DATA_DIR.pathjoin('bodybuilding_recipes.json').open as f:
+    
+    if not Path.exists(_DATA_DIR):
+        Path.mkdir(_DATA_DIR)
+
+    if not Path.exists(_CLEANED_DATA_DIR):
+        Path.mkdir(_CLEANED_DATA_DIR)
+
+    scrape_db()
+
+    with (_DATA_DIR / 'bodybuilding_recipes.json').open() as f:
         scraped_data = json.load(f)
 
     process_ingredients(scraped_data)
