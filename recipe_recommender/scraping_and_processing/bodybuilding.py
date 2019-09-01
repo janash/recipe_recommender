@@ -75,7 +75,7 @@ def save_df():
     """
 
     # Check that data directory exists, if not, create it
-    if not Path.is_sdir(_DATA_DIR):
+    if not Path.is_dir(_DATA_DIR):
         Path.mkdir(_DATA_DIR)
 
     # Check that file exists - if not use scrape_db function
