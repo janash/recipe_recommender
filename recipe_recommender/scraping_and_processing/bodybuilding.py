@@ -51,7 +51,7 @@ def scrape_db(test=False, write_file=True):
 
     else:
         # Change the 'limit' on the url to the total number of recipes
-        url_parameters = {'sort': 'publishDate', 'order': 'desc', 'limit': str(total_recipes)}
+        url_parameters['limit'] = str(total_recipes)
 
         all_recipes_list = requests.get(url_request, params=url_parameters)
         all_recipes = bs4.BeautifulSoup(all_recipes_list.content, features='html.parser')
@@ -60,13 +60,75 @@ def scrape_db(test=False, write_file=True):
     all_recipes_list = json.loads(str(all_recipes))['_embedded']['bb-cms:search-results']
 
     # Dump to json file - results will always be saved in 'data' folder
-    if write_file == True:
+    if write_file:
         save_path = _DATA_DIR.joinpath('bodybuilding_recipes.json')
         rf = open(save_path, 'w')
         json.dump(all_recipes_list, rf)
         rf.close()
 
     return all_recipes_list
+
+def get_extra_data(recipe_list, write_file=True, filename='bodybuilding_recipes_all_info.json'):
+    """
+    Get extra data with each recipe. 
+    
+    This function takes the json from the scrape_db function, and visits each recipe page on the website in order to
+    get extra tags associated with the recipe.
+
+    Parameters
+    ----------
+    recipe_list : dict
+        Recipes obtained from querying bodybuilding.com with scrape_db function.
+    write_file: bool (optional)
+        Write scraped data to file.
+    """
+    new_data = []
+    bad_slugs = []
+
+    for recipe in recipe_list:
+        slug = recipe['slug']
+        try:
+            contents = urllib.request.urlopen('https://www.bodybuilding.com/recipes/'+slug).read()
+            soup = bs4.BeautifulSoup(contents)
+            scripts = soup.find_all('script', type="application/ld+json")
+            new_data.append(scripts[0].text)
+        except:
+            bad_slugs.append(slug)
+    
+    if write_file:
+        save_path = _DATA_DIR.joinpath(filename)
+        rf = open(save_path, 'w')
+        json.dump(new_data, rf)
+        rf.close()
+
+    return new_data
+
+def flatten_json(json_data, current_key=None, current_dict=None):
+    """
+    Flatten a nested json into a Python dictionary using a recursive strategy 
+
+    Parameters
+    ----------
+    json_data: json
+        Data to process
+    """
+
+    if current_dict is None:
+        current_dict = {}
+    
+    if current_key is None:
+        current_key= ''
+
+    for k,v in json_data.items():
+        current_key += k
+        try:
+            for k2, v2 in v.items():
+                flatten_json(v, current_key=current_key, current_dict=current_dict)
+        except:
+            current_dict[current_key] = str(v)
+            current_key = ''
+    
+    return current_dict
 
 
 def save_df():
@@ -358,12 +420,23 @@ if __name__ == '__main__':
     if not Path.exists(_CLEANED_DATA_DIR):
         Path.mkdir(_CLEANED_DATA_DIR)
 
-    scrape_db()
+    #scrape_db()
 
-    with (_DATA_DIR / 'bodybuilding_recipes.json').open() as f:
+    with (_DATA_DIR / 'bodybuilding_recipes_all_info.json').open() as f:
         scraped_data = json.load(f)
 
-    process_ingredients(scraped_data)
-    process_nutrition(scraped_data)
-    process_instructions(scraped_data)
-    process_recipe_table(scraped_data)
+    import pandas as pd
+    
+    data_to_analyze = json.loads(scraped_data[0])
+
+    #print(scraped_data[0])
+    capture = flatten_json(data_to_analyze)
+  
+    test = pd.DataFrame.from_dict(capture, orient='index')
+    print(test)
+
+    #save_df()
+    #process_ingredients(scraped_data)
+    #process_nutrition(scraped_data)
+    #process_instructions(scraped_data)
+    #process_recipe_table(scraped_data)
