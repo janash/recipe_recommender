@@ -3,6 +3,7 @@ Functions to scrape and clean recipes from bodybuilding.com database
 """
 
 import os
+import urllib
 
 import bs4
 import pandas as pd
@@ -70,7 +71,7 @@ def scrape_db(test=False, write_file=True):
 
 def get_extra_data(recipe_list, write_file=True, filename='bodybuilding_recipes_all_info.json'):
     """
-    Get extra data with each recipe. 
+    Get extra data with each recipe. Some tags (such as 'breakfast', 'dessert' are not included with the initial query.)
     
     This function takes the json from the scrape_db function, and visits each recipe page on the website in order to
     get extra tags associated with the recipe.
@@ -85,13 +86,15 @@ def get_extra_data(recipe_list, write_file=True, filename='bodybuilding_recipes_
     new_data = []
     bad_slugs = []
 
+    # This try/except is for in case of any errors. There is currently one. Some recipe is misspelled on the slug.
     for recipe in recipe_list:
         slug = recipe['slug']
         try:
             contents = urllib.request.urlopen('https://www.bodybuilding.com/recipes/'+slug).read()
-            soup = bs4.BeautifulSoup(contents)
+            soup = bs4.BeautifulSoup(contents, features='html.parser')
             scripts = soup.find_all('script', type="application/ld+json")
-            new_data.append(scripts[0].text)
+            json_recipe = json.loads(scripts[0].text)
+            new_data.append(json_recipe)
         except:
             bad_slugs.append(slug)
     
@@ -101,7 +104,7 @@ def get_extra_data(recipe_list, write_file=True, filename='bodybuilding_recipes_
         json.dump(new_data, rf)
         rf.close()
 
-    return new_data
+    return new_data, bad_slugs
 
 def flatten_json(json_data, current_key=None, current_dict=None):
     """
@@ -420,20 +423,19 @@ if __name__ == '__main__':
     if not Path.exists(_CLEANED_DATA_DIR):
         Path.mkdir(_CLEANED_DATA_DIR)
 
-    #scrape_db()
+    #recipe_list = scrape_db()
+    #new_data, bad_slugs = get_extra_data(recipe_list)
 
     with (_DATA_DIR / 'bodybuilding_recipes_all_info.json').open() as f:
         scraped_data = json.load(f)
 
-    import pandas as pd
-    
-    data_to_analyze = json.loads(scraped_data[0])
-
+    for recipe in scraped_data:
     #print(scraped_data[0])
-    capture = flatten_json(data_to_analyze)
+        capture = flatten_json(recipe)
   
-    test = pd.DataFrame.from_dict(capture, orient='index')
-    print(test)
+    #test = pd.DataFrame.from_dict(capture, orient='index')
+
+    #print(test)
 
     #save_df()
     #process_ingredients(scraped_data)
